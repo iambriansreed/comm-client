@@ -1,0 +1,253 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body {
+    height: 100%;
+}
+
+body {
+    @apply m-0 font-sans antialiased;
+    font-size: 14px;
+}
+
+#root {
+    @apply contents;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+code {
+    font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+}
+
+body {
+    @apply bg-zinc-800 text-zinc-50;
+}
+
+form {
+    display: contents;
+}
+
+svg {
+    @apply fill-zinc-500 w-7 inline-block;
+}
+
+button {
+    @apply rounded-md;
+
+    &:active {
+        @apply opacity-60;
+    }
+}
+
+button[type='submit'] {
+    @apply border bg-zinc-600 border-zinc-700 text-zinc-50 px-4 py-2;
+}
+
+h1 {
+    @apply text-7xl;
+}
+
+h2 {
+    @apply text-5xl;
+}
+
+.field {
+    @apply flex flex-col gap-1 py-2 w-full;
+
+    label[for] {
+        @apply text-sm text-white text-opacity-50;
+    }
+
+    .control {
+        @apply bg-zinc-900 bg-opacity-50 flex flex-row gap-4 w-full rounded-md;
+    }
+}
+
+input[type='text'],
+select {
+    @apply bg-transparent text-zinc-50 py-2 pl-4 pr-4 rounded grow outline-none focus:border-zinc-400 w-full text-lg;
+}
+
+select {
+    @apply appearance-none bg-no-repeat;
+    background-image: linear-gradient(45deg, transparent 50%, white 50%),
+        linear-gradient(135deg, white 50%, transparent 50%), linear-gradient(to right, transparent, transparent);
+    background-position: calc(100% - 20px) calc(1em + 2px), calc(100% - 15px) calc(1em + 2px), 100% 0;
+    background-size: 5px 5px, 5px 5px, 2.5em 2.5em;
+}
+
+.flex-center {
+    @apply flex items-center justify-center grow;
+}
+
+.app {
+    @apply flex flex-col w-full h-full;
+    > main {
+        @apply grow overflow-scroll;
+    }
+}
+
+footer.credits {
+    @apply flex flex-row justify-between p-3;
+    svg {
+        @apply mx-2 w-5;
+    }
+}
+.server-offline {
+    > main {
+        @extend .flex-center;
+        @apply flex-col;
+    }
+}
+
+.login {
+    > main {
+        @extend .flex-center;
+
+        .form {
+            @apply flex flex-col gap-4 items-center max-w-lg w-96 text-lg;
+
+            .tabs {
+                @apply flex flex-row gap-4 grow w-full;
+                > button {
+                    @apply flex text-lg p-2 grow rounded-md justify-center font-light;
+
+                    &.active {
+                        @apply bg-zinc-900 bg-opacity-50 opacity-100 font-bold;
+                    }
+                }
+            }
+
+            button[type='submit'] {
+                @apply max-w-lg;
+            }
+
+            footer {
+                @apply flex w-full flex-row gap-3 justify-center;
+            }
+
+            button svg {
+                @apply w-6 fill-zinc-500 mr-2;
+            }
+        }
+    }
+}
+
+.room {
+    > header {
+        @apply bg-zinc-900 px-6 pt-4 pb-3 flex flex-row gap-5 justify-center items-center flex-nowrap overflow-hidden;
+
+        svg {
+            @apply mr-2 w-5;
+        }
+
+        h1 {
+            @apply text-lg font-bold hover:underline-offset-4 hover:cursor-pointer whitespace-nowrap;
+        }
+        .usernames {
+            @apply basis-0 min-w-0 grow overflow-ellipsis whitespace-nowrap overflow-hidden;
+
+            h2 {
+                @apply text-base font-semibold inline-block pr-4;
+            }
+
+            span + span {
+                &::before {
+                    content: ', ';
+                }
+            }
+        }
+    }
+
+    > main {
+        @apply grow overflow-scroll flex flex-col pb-2 gap-1 select-none;
+
+        .line {
+            &:empty {
+                display: none !important;
+            }
+
+            &.system-event {
+                @apply flex py-2 justify-center font-thin italic text-sm;
+            }
+
+            &.message {
+                @apply flex flex-row-reverse items-center my-1 px-4 gap-4;
+
+                .time {
+                    @apply flex items-center text-xs uppercase opacity-0 shrink-0;
+                }
+
+                .bubble {
+                    @apply grow p-3 border border-zinc-700 rounded-lg bg-white bg-opacity-5;
+                }
+
+                &:hover {
+                    .time {
+                        @apply opacity-50;
+                    }
+                    .bubble {
+                        @apply bg-opacity-10;
+                    }
+                }
+
+                &:first-child {
+                    @apply mt-5;
+                }
+
+                &.mine {
+                    @apply flex-row;
+                }
+
+                .username {
+                    @apply text-base font-bold;
+                }
+
+                &.prev-same {
+                    @apply mt-0;
+
+                    .bubble {
+                        @apply border-t-0 rounded-t-none;
+
+                        .username {
+                            @apply hidden;
+                        }
+                    }
+                }
+
+                &.next-same {
+                    @apply -mb-1;
+
+                    .bubble {
+                        @apply border-b-0 rounded-b-none;
+                    }
+                }
+
+                .message {
+                    @apply text-base font-normal;
+                }
+            }
+        }
+    }
+
+    > footer {
+        @apply flex flex-row bg-zinc-700 p-2 px-4 gap-0;
+
+        button {
+            @apply my-2 rounded-l-none;
+        }
+
+        .control {
+            @apply rounded-r-none;
+        }
+
+        svg {
+            @apply w-5 fill-white opacity-60;
+        }
+    }
+}
