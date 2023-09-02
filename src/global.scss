@@ -10,6 +10,7 @@ body {
 body {
     @apply m-0 font-sans antialiased;
     font-size: 14px;
+    @apply bg-zinc-900 bg-gradient-to-br from-zinc-800 text-zinc-50;
 }
 
 #root {
@@ -22,10 +23,6 @@ body {
 
 code {
     font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
-}
-
-body {
-    @apply bg-zinc-800 text-zinc-50;
 }
 
 form {
@@ -49,11 +46,11 @@ button[type='submit'] {
 }
 
 h1 {
-    @apply text-7xl;
+    @apply text-7xl tracking-tighter;
 }
 
 h2 {
-    @apply text-5xl;
+    @apply text-5xl tracking-tighter;
 }
 
 .field {
@@ -98,7 +95,7 @@ footer.credits {
         @apply mx-2 w-5;
     }
 }
-.server-offline {
+.connecting {
     > main {
         @extend .flex-center;
         @apply flex-col;

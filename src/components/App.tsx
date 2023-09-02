@@ -1,18 +1,16 @@
 import { Route, useSessionContext } from './Session';
 import Room from './Room';
 import Login from './Login';
-import ServerOffline from './ServerOffline';
+import Connecting from './Connecting';
 import { ReactElement } from 'react';
-import Init from './Init';
 
 function App() {
     const { route } = useSessionContext();
 
     const router: Record<Route, () => ReactElement<any, any>> = {
-        'server-offline': ServerOffline,
+        connecting: Connecting,
         room: Room,
         login: Login,
-        init: Init,
     };
 
     const Component = (route && router[route]) || (() => <>404</>);

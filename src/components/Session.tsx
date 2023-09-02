@@ -17,7 +17,7 @@ const SessionContextDefaults = (): SessionContext => ({
     username: sessionStorage.getItem('username') || '',
 });
 
-export type Route = 'init' | 'login' | 'room' | 'server-offline';
+export type Route = 'login' | 'room' | 'connecting';
 
 interface SessionContextProvided extends Partial<SessionContext> {
     login: (username: string, roomName: string) => Promise<void>;
@@ -33,7 +33,7 @@ const sessionContext = React.createContext<SessionContextProvided | null>(null);
 const Provider = sessionContext.Provider;
 
 export const SessionProvider = ({ children }: PropsWithChildren) => {
-    const [route, setRoute] = useState<Route>('init');
+    const [route, setRoute] = useState<Route>('connecting');
 
     const [rooms, setRooms] = useState<string[]>([]);
 
@@ -87,7 +87,7 @@ export const SessionProvider = ({ children }: PropsWithChildren) => {
             });
         };
         const onConnectError = () => {
-            setRoute('server-offline');
+            setRoute('connecting');
         };
         socket.on('connect', onConnect);
         socket.on('connect_error', onConnectError);
