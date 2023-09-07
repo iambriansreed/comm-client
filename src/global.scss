@@ -63,6 +63,14 @@ h2 {
     .control {
         @apply bg-zinc-900 bg-opacity-50 flex flex-row gap-4 w-full rounded-md;
     }
+
+    .error-message {
+        @apply text-red-500;
+
+        &:empty {
+            @apply hidden;
+        }
+    }
 }
 
 input[type='text'],
@@ -99,6 +107,18 @@ footer.credits {
     > main {
         @extend .flex-center;
         @apply flex-col;
+
+        .spinner {
+            svg {
+                @apply animate-spin w-10;
+                circle {
+                    @apply fill-white opacity-5;
+                }
+                path {
+                    @apply fill-white;
+                }
+            }
+        }
     }
 }
 
@@ -107,15 +127,15 @@ footer.credits {
         @extend .flex-center;
 
         .form {
-            @apply flex flex-col gap-4 items-center max-w-lg w-96 text-lg;
+            @apply flex flex-col gap-4 items-center max-w-lg w-96;
 
             .tabs {
                 @apply flex flex-row gap-4 grow w-full;
                 > button {
-                    @apply flex text-lg p-2 grow rounded-md justify-center font-light;
+                    @apply rounded-none flex p-1 grow justify-center;
 
                     &.active {
-                        @apply bg-zinc-900 bg-opacity-50 opacity-100 font-bold;
+                        @apply border-b border-b-zinc-400;
                     }
                 }
             }
@@ -135,9 +155,9 @@ footer.credits {
     }
 }
 
-.room {
+.channel {
     > header {
-        @apply bg-zinc-900 px-6 pt-4 pb-3 flex flex-row gap-5 justify-center items-center flex-nowrap overflow-hidden;
+        @apply bg-zinc-900 px-6 pt-4 pb-3 flex flex-row gap-5 justify-between items-center flex-nowrap overflow-hidden;
 
         svg {
             @apply mr-2 w-5;
@@ -146,7 +166,7 @@ footer.credits {
         h1 {
             @apply text-lg font-bold hover:underline-offset-4 hover:cursor-pointer whitespace-nowrap;
         }
-        .usernames {
+        .users {
             @apply basis-0 min-w-0 grow overflow-ellipsis whitespace-nowrap overflow-hidden;
 
             h2 {
@@ -181,7 +201,7 @@ footer.credits {
                 }
 
                 .bubble {
-                    @apply grow p-3 border border-zinc-700 rounded-lg bg-white bg-opacity-5;
+                    @apply grow p-3 border border-zinc-700 rounded-lg bg-zinc-800;
                 }
 
                 &:hover {
@@ -201,27 +221,27 @@ footer.credits {
                     @apply flex-row;
                 }
 
-                .username {
+                .user {
                     @apply text-base font-bold;
                 }
 
                 &.prev-same {
-                    @apply mt-0;
+                    @apply my-0;
 
                     .bubble {
-                        @apply border-t-0 rounded-t-none;
+                        @apply border-t-0 rounded-t-none pt-1;
 
-                        .username {
+                        .user {
                             @apply hidden;
                         }
                     }
                 }
 
                 &.next-same {
-                    @apply -mb-1;
+                    @apply my-0 -mb-1 /* fixes gap */;
 
                     .bubble {
-                        @apply border-b-0 rounded-b-none;
+                        @apply border-b-0 rounded-b-none pb-1;
                     }
                 }
 

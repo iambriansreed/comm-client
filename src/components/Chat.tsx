@@ -1,19 +1,15 @@
 import { PropsWithChildren, useEffect, useMemo, useState } from 'react';
 import { useSessionContext } from './Session';
 import clsx from '../clsx';
-import { EventSystem, EventMessage, RoomEvent } from '@bsr-comm/types';
+import { ChannelEvent, SystemEvent, isSystemEvent } from '@bsr-comm/types';
 import { BurstIcon, SendIcon, UsersIcon } from '../icons';
+import { sortBy } from '../utils';
 
 type LineData = {
     date: Date;
     nextIsSame: boolean;
     prevIsSame: boolean;
-    type: 'message' | 'system-event' | undefined;
 };
-
-function sortBy(getValue: (obj: any) => any) {
-    return (a: Record<string, any>, b: Record<string, any>) => (getValue(a) > getValue(b) ? 1 : -1);
-}
 
 const formatTime = (date: Date) =>
     date.toLocaleTimeString(navigator.language, {
@@ -26,16 +22,26 @@ const formatDate = (date: Date) =>
         dateStyle: 'medium',
     });
 
-function Line({ children, className, ...e }: PropsWithChildren<RoomEvent & LineData & { className?: string }>) {
+function Line({
+    children,
+    className,
+    ...e
+}: PropsWithChildren<(ChannelEvent | SystemEvent) & LineData & { className?: string }>) {
     return (
-        <div key={e.uid} id={'line-' + e.uid} className={clsx('line', className)}>
+        <div id={'line-' + e.id} className={clsx('line', className)}>
             {children}
         </div>
     );
 }
 
-function Message(e: EventMessage & LineData) {
-    const { username } = useSessionContext();
+interface MessageEvent extends ChannelEvent<{ message: string }> {}
+
+function isMessageEvent(e: ChannelEvent): e is MessageEvent {
+    return 'message' in e.data;
+}
+
+function MessageLine(e: MessageEvent & LineData) {
+    const { userName } = useSessionContext();
 
     return (
         <Line
@@ -44,50 +50,35 @@ function Message(e: EventMessage & LineData) {
                 'message',
                 e.prevIsSame && 'prev-same',
                 e.nextIsSame && 'next-same',
-                e.username === username && 'mine'
+                e.user === userName && 'mine'
             )}
         >
             <div className="time">{formatTime(e.date)}</div>
             <div className="bubble">
-                <div className="username">{e.username}</div>
+                <div className="user">{e.user}</div>
                 <div className="message">{e.data.message}</div>
             </div>
         </Line>
     );
 }
 
-const actions = { join: 'joined', leave: 'left' } as const;
+const systemActions: Record<SystemEvent['system'], string> = { login: 'joined', logout: 'left' } as const;
 
-function SystemEvent(e: EventSystem & LineData) {
+function SystemEventLine(e: SystemEvent & LineData) {
     const [className] = useState('');
-
-    /*
-
-    fadeout and hide
-    useMountEffect(() => {
-        setTimeout(() => {
-            setClassName('opacity-0 transition-all duration-[1000ms] ease-in');
-            setTimeout(() => {
-                setClassName('');
-            }, 1000);
-        }, 5000);
-    });
-
-    if (e.time + 6000 < Date.now()) return <></>;
-    */
 
     return (
         <Line {...e} className={clsx('system-event', className)}>
             <span>
-                <span className="username">{e.username}</span> {actions[e.data.system] || 'interacted with'} the room at{' '}
+                <span className="user">{e.user}</span> {systemActions[e.system] || 'interacted with'} the channel at{' '}
                 {formatDate(e.date)}
             </span>
         </Line>
     );
 }
 
-export default function Room() {
-    const { events, roomName, logout, sendMessage, usernames } = useSessionContext();
+export default function Chat() {
+    const { events, channelName, logout, sendEvent, users } = useSessionContext();
 
     const [scrollElement, setScrollElement] = useState<HTMLElement | null>(null);
 
@@ -95,30 +86,23 @@ export default function Room() {
         if (scrollElement) scrollElement.scrollTo(0, document.body.scrollHeight);
     }, [events, scrollElement]);
 
-    const roomEvents = useMemo(() => {
+    const channelEvents = useMemo(() => {
         return (events || [])
             .sort(sortBy((e) => e.time))
             .filter((e, index, all) => {
                 const prev = all[index - 1];
-                return prev && prev.time !== e.time;
-            })
-            .map((e) => {
-                let type: 'system-event' | 'message' | undefined = undefined;
-                if ('system' in e.data) type = 'system-event';
-                if ('message' in e.data) type = 'message';
-                return {
-                    ...e,
-                    type,
-                };
+                return prev && prev.id !== e.id;
             })
             .map((e, index, all) => {
                 const next = all[index + 1];
                 const prev = all[index - 1];
+
+                const systemEvent = isSystemEvent(e);
                 return {
                     ...e,
                     date: new Date(e.time),
-                    nextIsSame: next && next?.username === e.username && next.type === e.type,
-                    prevIsSame: prev && prev?.username === e.username && prev.type === e.type,
+                    nextIsSame: next && next.user === e.user && isSystemEvent(next) === systemEvent,
+                    prevIsSame: prev && prev.user === e.user && isSystemEvent(prev) === systemEvent,
                 };
             });
     }, [events]);
@@ -132,7 +116,7 @@ export default function Room() {
 
         if (!message) return;
 
-        sendMessage(message);
+        sendEvent({ message });
 
         form.reset();
     };
@@ -142,25 +126,29 @@ export default function Room() {
             <header>
                 <h1
                     onClick={() => {
-                        navigator.clipboard.writeText(document.location.origin + '#/' + roomName);
+                        navigator.clipboard.writeText(document.location.origin + '#/' + channelName);
                     }}
                 >
                     <BurstIcon />
-                    {roomName}
+                    {channelName}
                 </h1>
-                <div className="usernames">
+                <div className="users">
                     <UsersIcon />
-                    {!usernames ? 'None' : usernames.map((u, index) => <span key={u + index}>{u}</span>)}
+                    {!users ? 'None' : users.map((u, index) => <span key={u + index}>{u}</span>)}
                 </div>
                 <button type="button" onClick={logout}>
                     Logout
                 </button>
             </header>
             <main ref={(node) => setScrollElement(node)}>
-                {roomEvents.map((e) => {
-                    if (e.type === 'message') return <Message {...e} />;
+                {channelEvents.map((e) => {
+                    if (isSystemEvent(e)) {
+                        return <SystemEventLine key={e.id} {...e} />;
+                    }
 
-                    if (e.type === 'system-event') return <SystemEvent {...e} />;
+                    if (isMessageEvent(e)) {
+                        return <MessageLine key={e.id} {...e} />;
+                    }
 
                     return null;
                 })}
