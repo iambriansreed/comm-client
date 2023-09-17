@@ -1,8 +1,8 @@
 import { PropsWithChildren, useEffect, useMemo, useState } from 'react';
 import { useSessionContext } from './Session';
 import clsx from '../clsx';
-import { ChannelEvent, SystemEvent, isSystemEvent } from '@bsr-comm/types';
-import { BurstIcon, SendIcon, UsersIcon } from '../icons';
+import { ChannelEvent, SystemEvent, isSystemEvent } from '@bsr-comms/utils';
+import { AppIcon, SendIcon, UsersIcon } from '../icons';
 import { sortBy } from '../utils';
 
 type LineData = {
@@ -78,7 +78,8 @@ function SystemEventLine(e: SystemEvent & LineData) {
 }
 
 export default function Chat() {
-    const { events, channelName, logout, sendEvent, users } = useSessionContext();
+    const { channel, logout, sendEvent } = useSessionContext();
+    const { events, users, name: channelName } = channel!;
 
     const [scrollElement, setScrollElement] = useState<HTMLElement | null>(null);
 
@@ -129,7 +130,7 @@ export default function Chat() {
                         navigator.clipboard.writeText(document.location.origin + '#/' + channelName);
                     }}
                 >
-                    <BurstIcon />
+                    <AppIcon />
                     {channelName}
                 </h1>
                 <div className="users">

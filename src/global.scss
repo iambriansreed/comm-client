@@ -134,6 +134,9 @@ footer.credits {
                 > button {
                     @apply rounded-none flex p-1 grow justify-center;
 
+                    &[disabled] {
+                        @apply opacity-30;
+                    }
                     &.active {
                         @apply border-b border-b-zinc-400;
                     }

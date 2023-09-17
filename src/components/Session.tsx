@@ -1,268 +1,237 @@
-import React, { PropsWithChildren, useContext, useEffect, useState } from 'react';
-import {
-    ClientChannel,
-    ChannelAction,
-    ChannelEvent,
-    ChannelNameResponse,
-    ChannelStatus,
-    ClientStatusResponse,
-    EventAction,
-    LoginResponse,
-    LogoutResponse,
-    SocketEvent,
-    ErrorResponse,
-} from '@bsr-comm/types';
+import React, { PropsWithChildren, useContext, useEffect, useReducer, useState } from 'react';
+import { ClientChannel, isErrorResponse, User, ChannelEvent, SocketClient, ErrorResponse } from '@bsr-comms/utils';
+
 import useMountEffect from '../hooks/useMountEffect';
-import socket from '../socket';
-import { sortBy } from '../utils';
 
-const Session = new (class {
-    sessionReset() {
-        this.sessionId = crypto.randomUUID();
-        return this.sessionId;
-    }
+import { io } from 'socket.io-client';
 
-    get sessionId(): string {
-        return sessionStorage.getItem('sessionId') || this.sessionReset();
-    }
-    set sessionId(value: string) {
-        sessionStorage.setItem('sessionId', value);
+const server_uri = process.env.SERVER_URI || process.env.REACT_APP_SERVER_URI!;
+
+const comm = SocketClient(
+    io(server_uri, {
+        extraHeaders: {
+            'my-custom-header': 'abcd',
+        },
+        autoConnect: false,
+    })
+);
+
+class Session {
+    constructor(private sessionStorage = globalThis.sessionStorage) {}
+
+    get id(): string {
+        let value = this.sessionStorage.getItem('id');
+
+        if (!value) {
+            value = crypto.randomUUID();
+            this.sessionStorage.setItem('id', value);
+        }
+
+        return value;
     }
 
     get userName(): string {
-        return sessionStorage.getItem('userName') || '';
+        return this.sessionStorage.getItem('userName') || '';
     }
     set userName(value: string) {
-        sessionStorage.setItem('userName', value);
+        this.sessionStorage.setItem('userName', value);
     }
-
     get channelName(): string {
-        return sessionStorage.getItem('channelName') || '';
+        return this.sessionStorage.getItem('channelName') || '';
     }
     set channelName(value: string) {
-        sessionStorage.setItem('channelName', value);
+        this.sessionStorage.setItem('channelName', value);
     }
-})();
 
-interface SessionContext {
-    channelName: ClientChannel['name'] | null;
-    users: string[];
-    events: ClientChannel['events'];
-    userName: string | null;
-    error: string;
+    get user(): User {
+        return {
+            name: this.userName,
+            sessionId: this.id,
+        };
+    }
 }
-
-const SessionContextDefaults = (): SessionContext => {
-    return {
-        channelName: '' as ClientChannel['name'],
-        users: [] as string[],
-        events: [] as ClientChannel['events'],
-        userName: Session.userName,
-        error: '',
-    };
-};
 
 export type Route = 'login' | 'channel' | 'connecting';
 
-interface SessionContextProvided extends Partial<SessionContext> {
-    availableChannels: ChannelStatus[];
-    getNewChannel: () => Promise<ChannelNameResponse>;
+export const ErrorMessage: Record<ErrorResponse['code'], string> = {
+    MaxUsers: 'The maximum number of users have already joined the channel.',
+    UsernameInvalid: 'User name is invalid.',
+    UsernameUnavailable: 'User name is unavailable.',
+};
+
+interface SessionContext {
+    channel: ClientChannel | null;
+    userName: string | null;
+    error: ErrorResponse['code'] | null;
+    route: Route;
+}
+
+interface SessionContextProvided extends SessionContext {
+    getNewChannel: () => Promise<string>;
     login: (userName: string, channelName: string) => Promise<void>;
     logout: () => void;
-    refreshChannels: () => void;
-    route: Route;
     sendEvent: (data: any) => void;
+    setError: (error: ErrorResponse['code'] | null) => void;
 }
 
 const sessionContext = React.createContext<SessionContextProvided | null>(null);
 
 const Provider = sessionContext.Provider;
 
-export const SessionProvider = ({ children }: PropsWithChildren) => {
-    const [route, setRoute] = useState<Route>('connecting');
-    const [error, setError] = useState<string>('');
+const session = new Session();
 
-    const [channels, setChannels] = useState<ChannelStatus[]>([]);
+type Action =
+    | {
+          type: 'event';
+          data: ChannelEvent;
+      }
+    | {
+          type: 'channel';
+          data: ClientChannel;
+      };
 
-    const [contextValue, setContextValue] = useState<SessionContext>(SessionContextDefaults());
+function channelReducer(state: SessionContext['channel'], action: Action | null): SessionContext['channel'] {
+    if (!action) return action;
 
-    const setContextKey = (callback: (prev: SessionContext) => Partial<SessionContext> | null | false | undefined) =>
-        setContextValue((prev) => ({
-            ...prev,
-            ...(callback(prev) || null),
-        }));
+    const { type, data } = action;
 
+    if (type === 'channel' && (!state || data.name === state?.name)) {
+        return { ...state, ...data };
+    }
+
+    if (type === 'event' && data.channel === state?.name) {
+        const events: ClientChannel['events'] = [...state.events, data];
+        return { ...state, events };
+    }
+
+    return state;
+}
+
+export function SessionProvider({ children }: PropsWithChildren) {
+    const [channel, setChannel] = useReducer(channelReducer, null);
+    const [userName, setUsername] = useState<SessionContext['userName']>(session.userName || null);
+    const [error, setError] = useState<SessionContext['error'] | null>(null);
+    const [route, setRoute] = useState<SessionContext['route']>('connecting');
+
+    // clear error when route changes
     useEffect(() => {
-        Session.channelName = contextValue.channelName || '';
-        Session.userName = contextValue.userName || '';
-    }, [contextValue.channelName, contextValue.userName]);
+        setError(null);
+    }, [channel]);
 
-    const refreshChannels = () =>
-        socket.emitWithAck(SocketEvent.ClientStatus).then(({ channels }: ClientStatusResponse) => {
-            setChannels(channels);
-        });
-
-    useMountEffect(() => {
-        const onChannelEvent = (channelEvent: ChannelEvent) => {
-            const { channel } = channelEvent;
-
-            setContextKey(
-                ({ channelName, events }) => channel === channelName && { events: [...events, channelEvent] }
-            );
-        };
-
-        const onConnect = () => {
-            refreshChannels().then(() => {
-                const channelName =
-                    document.location.hash?.length > 2 ? document.location.hash.substring(2) : Session.channelName;
-
-                const user = Session.userName;
-
-                if (user && channelName) {
-                    login(user, channelName);
+    useMountEffect(
+        comm.onMount({
+            onChannelEvent: (data) => {
+                setChannel({ data, type: 'event' });
+            },
+            onConnect: async () => {
+                const { userName, channelName } = session;
+                if (userName && channelName) {
+                    login(userName, channelName);
                 } else {
                     setRoute('login');
                 }
-            });
-        };
+            },
+            onConnectError: () => {
+                setRoute('connecting');
+            },
+            onChannelLogin: ({ channel: data }) => {
+                setChannel({ type: 'channel', data });
+            },
+            onChannelLogout: ({ channel: data }) => {
+                data && setChannel({ type: 'channel', data });
+            },
+        })
+    );
 
-        const onConnectError = () => {
-            setRoute('connecting');
-        };
+    const login: SessionContextProvided['login'] = async (userName, channel) => {
+        if (!userName || !channel) return;
 
-        const onChannelLogin = ({ channels, channel }: LoginResponse) => {
-            setContextKey(
-                (prev) =>
-                    channel.name === prev.channelName && {
-                        users: channel.users,
-                        events: channel.events,
-                    }
-            );
-            setChannels(channels);
-        };
+        const response = await comm.login({
+            channel,
+            user: {
+                name: userName,
+                sessionId: session.id,
+            },
+        });
 
-        const onChannelLogout = ({ channels, channel }: LogoutResponse) => {
-            if (channel)
-                setContextKey(
-                    (prev) =>
-                        channel?.name === prev.channelName && {
-                            users: channel.users,
-                            events: channel.events,
-                        }
-                );
-
-            setChannels(channels);
-        };
-
-        socket.on('connect', onConnect);
-        socket.on('connect_error', onConnectError);
-        socket.on(SocketEvent.ChannelEvent, onChannelEvent);
-        socket.on(SocketEvent.ChannelLogin, onChannelLogin);
-        socket.on(SocketEvent.ChannelLogout, onChannelLogout);
-
-        socket.connect();
-
-        return () => {
-            socket.off('connect', onConnect);
-            socket.off('connect_error', onConnectError);
-            socket.off(SocketEvent.ChannelEvent, onChannelEvent);
-            socket.off(SocketEvent.ChannelLogin, onChannelLogin);
-            socket.off(SocketEvent.ChannelLogout, onChannelLogout);
-        };
-    });
-
-    // then channel changes in context update location hash
-    useEffect(() => {
-        if (document.location.hash.substring(2) !== contextValue.channelName) {
-            document.location.hash = !contextValue.channelName ? '' : '/' + contextValue.channelName;
-        }
-    }, [contextValue.channelName]);
-
-    const newChannelAction = (
-        userName = contextValue.userName,
-        channelName = contextValue.channelName
-    ): ChannelAction => ({
-        channel: channelName!,
-        user: {
-            name: userName!,
-            sessionId: Session.sessionId,
-        },
-    });
-
-    const newEvent: <T = Record<string, any>>(data: T) => EventAction<T> = (data: any) => {
-        return {
-            ...newChannelAction(),
-            data,
-        } as EventAction;
-    };
-
-    const login: SessionContextProvided['login'] = async (userName, channelName) => {
-        const response: LoginResponse | ErrorResponse = await socket.emitWithAck(
-            //
-            SocketEvent.ChannelLogin,
-            newChannelAction(userName, channelName)
-        );
-
-        if ('error' in response) {
-            setError(response.error);
+        if (isErrorResponse(response)) {
+            setError(response.code);
+            setRoute('login');
             return;
         }
 
-        const { channel } = response;
+        if (!response.channel) {
+            setRoute('login');
+            return;
+        }
 
+        // successful login, set session
+
+        session.channelName = channel;
+        session.userName = userName;
+
+        setChannel({ type: 'channel', data: response.channel });
+        setUsername(userName);
+        setRoute('channel');
+    };
+
+    const logout: SessionContextProvided['logout'] = async () => {
         if (!channel) {
             setRoute('login');
             return;
         }
 
-        setContextKey(() => ({
-            events: channel.events,
-            users: channel.users,
-            userName,
-            channelName,
-        }));
+        const response = await comm.logout({
+            channel: channel.name,
+            user: session.user,
+        });
 
-        setRoute('channel');
-    };
+        if (isErrorResponse(response)) {
+            setError(response.code);
+            return;
+        }
 
-    const logout: SessionContextProvided['logout'] = async () => {
-        const { channels }: LogoutResponse = await socket.emitWithAck(
-            //
-            SocketEvent.ChannelLogout,
-            newChannelAction()
-        );
+        // successful channel logout, set session vars
+        session.channelName = '';
 
-        setContextKey((prev) => ({ ...SessionContextDefaults(), userName: prev.userName }));
-
-        setChannels(channels);
+        setChannel(null);
 
         setRoute('login');
     };
 
     const sendEvent = async (data: any) => {
-        const eventPayload = newEvent(data);
+        if (!channel?.name) return;
 
-        const event = await socket.emitWithAck(SocketEvent.ChannelEvent, eventPayload);
+        const action = { data, channel: channel.name, user: session.user };
 
-        setContextValue((prev) => ({ ...prev, events: [...prev.events, event] }));
+        const channelEvent = await comm.sendEvent(action);
+
+        if (isErrorResponse(channelEvent)) {
+            setError(channelEvent.code);
+            return;
+        }
+
+        setChannel({ type: 'event', data: channelEvent });
     };
 
-    const getNewChannel = async () => socket.emitWithAck(SocketEvent.ChannelName) as Promise<ChannelNameResponse>;
-
-    const sessionContextProvidedValue: SessionContextProvided = {
-        ...contextValue,
-        login,
-        logout,
-        sendEvent: sendEvent,
-        availableChannels: channels.sort(sortBy((c) => c.name)),
-        route: route,
-        getNewChannel,
-        refreshChannels,
-        error,
-    };
-
-    return <Provider value={sessionContextProvidedValue}>{children}</Provider>;
-};
+    return (
+        <Provider
+            value={{
+                channel,
+                error,
+                getNewChannel: () => comm.getNewChannel(),
+                login,
+                logout,
+                route,
+                sendEvent,
+                setError,
+                userName,
+            }}
+        >
+            {children}
+        </Provider>
+    );
+}
 
 export const useSessionContext = (): SessionContextProvided => {
     const context = useContext(sessionContext);

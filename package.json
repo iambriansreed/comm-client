@@ -45,7 +45,7 @@
         ]
     },
     "devDependencies": {
-        "@bsr-comm/types": "github:iambriansreed/comm-types",
+        "@bsr-comms/utils": "github:iambriansreed/comms-utils",
         "gh-pages": "^6.0.0",
         "socket.io-client": "^4.7.2",
         "tailwindcss": "^3.3.3"
