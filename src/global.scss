@@ -91,7 +91,8 @@ select {
 }
 
 .app {
-    @apply flex flex-col w-full h-full;
+    @apply flex flex-col w-full h-full px-5;
+
     > main {
         @apply grow overflow-scroll;
     }
