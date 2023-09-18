@@ -1,6 +1,6 @@
 import React, { PropsWithChildren, useContext, useEffect, useReducer, useState } from 'react';
 import { ClientChannel, isErrorResponse, User, ChannelEvent, SocketClient, ErrorResponse } from '@bsr-comms/utils';
-
+import { sortBy } from '../utils';
 import useMountEffect from '../hooks/useMountEffect';
 
 import { io } from 'socket.io-client';
@@ -100,7 +100,8 @@ function channelReducer(state: SessionContext['channel'], action: Action | null)
     }
 
     if (type === 'event' && data.channel === state?.name) {
-        const events: ClientChannel['events'] = [...state.events, data];
+        const events: ClientChannel['events'] = [...state.events, data].sort(sortBy((e) => e.time));
+
         return { ...state, events };
     }
 
@@ -121,7 +122,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
     useMountEffect(
         comm.onMount({
             onChannelEvent: (data) => {
-                setChannel({ data, type: 'event' });
+                setChannel({ type: 'event', data });
             },
             onConnect: async () => {
                 const { userName, channelName } = session;

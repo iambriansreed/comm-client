@@ -1,9 +1,8 @@
-import { PropsWithChildren, useEffect, useMemo, useState } from 'react';
+import { PropsWithChildren, useEffect, useState } from 'react';
 import { useSessionContext } from './Session';
 import clsx from '../clsx';
 import { ChannelEvent, SystemEvent, isSystemEvent } from '@bsr-comms/utils';
 import { AppIcon, SendIcon, UsersIcon } from '../icons';
-import { sortBy } from '../utils';
 
 type LineData = {
     date: Date;
@@ -87,27 +86,6 @@ export default function Chat() {
         if (scrollElement) scrollElement.scrollTo(0, document.body.scrollHeight);
     }, [events, scrollElement]);
 
-    const channelEvents = useMemo(() => {
-        return (events || [])
-            .sort(sortBy((e) => e.time))
-            .filter((e, index, all) => {
-                const prev = all[index - 1];
-                return prev && prev.id !== e.id;
-            })
-            .map((e, index, all) => {
-                const next = all[index + 1];
-                const prev = all[index - 1];
-
-                const systemEvent = isSystemEvent(e);
-                return {
-                    ...e,
-                    date: new Date(e.time),
-                    nextIsSame: next && next.user === e.user && isSystemEvent(next) === systemEvent,
-                    prevIsSame: prev && prev.user === e.user && isSystemEvent(prev) === systemEvent,
-                };
-            });
-    }, [events]);
-
     const handleSend: React.FormEventHandler<HTMLFormElement> = (e) => {
         e.preventDefault();
 
@@ -142,13 +120,28 @@ export default function Chat() {
                 </button>
             </header>
             <main ref={(node) => setScrollElement(node)}>
-                {channelEvents.map((e) => {
-                    if (isSystemEvent(e)) {
-                        return <SystemEventLine key={e.id} {...e} />;
+                {events.map((e, index, all) => {
+                    const prev = all[index - 1];
+
+                    if (prev && prev.id === e.id) {
+                        return null;
                     }
 
-                    if (isMessageEvent(e)) {
-                        return <MessageLine key={e.id} {...e} />;
+                    const next = all[index + 1];
+                    const systemEvent = isSystemEvent(e);
+                    const event = {
+                        ...e,
+                        date: new Date(e.time),
+                        nextIsSame: next && next.user === e.user && isSystemEvent(next) === systemEvent,
+                        prevIsSame: prev && prev.user === e.user && isSystemEvent(prev) === systemEvent,
+                    };
+
+                    if (isSystemEvent(event)) {
+                        return <SystemEventLine key={event.id} {...event} />;
+                    }
+
+                    if (isMessageEvent(event)) {
+                        return <MessageLine key={event.id} {...event} />;
                     }
 
                     return null;

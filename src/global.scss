@@ -91,7 +91,7 @@ select {
 }
 
 .app {
-    @apply flex flex-col w-full h-full px-5;
+    @apply flex flex-col w-full h-full;
 
     > main {
         @apply grow overflow-scroll;
@@ -124,6 +124,8 @@ footer.credits {
 }
 
 .login {
+    @apply px-5;
+
     > main {
         @extend .flex-center;
 
