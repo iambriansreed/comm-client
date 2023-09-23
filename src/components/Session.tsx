@@ -13,6 +13,7 @@ const comm = SocketClient(
             'my-custom-header': 'abcd',
         },
         autoConnect: false,
+        transports: ['websocket', 'polling', 'flashsocket'],
     })
 );
 

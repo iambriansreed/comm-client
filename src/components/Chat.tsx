@@ -83,7 +83,7 @@ export default function Chat() {
     const [scrollElement, setScrollElement] = useState<HTMLElement | null>(null);
 
     useEffect(() => {
-        if (scrollElement) scrollElement.scrollTo(0, document.body.scrollHeight);
+        if (scrollElement) scrollElement.scrollTo(0, scrollElement.scrollHeight);
     }, [events, scrollElement]);
 
     const handleSend: React.FormEventHandler<HTMLFormElement> = (e) => {
@@ -96,8 +96,8 @@ export default function Chat() {
         if (!message) return;
 
         sendEvent({ message });
-
-        form.reset();
+        form.message.value = '';
+        form.message.focus();
     };
 
     return (
