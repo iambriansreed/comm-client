@@ -8,7 +8,7 @@ export default function Footer() {
                 <HeartIcon />
                 by <a href="https://iambrian.com">Brian</a>
             </div>
-            <div className="version">0.0.2</div>
+            <div className="version">0.1.2</div>
         </footer>
     );
 }
