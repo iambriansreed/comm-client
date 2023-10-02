@@ -81,24 +81,23 @@ export default function Chat() {
     const { events, users, name: channelName } = channel!;
 
     const [scrollElement, setScrollElement] = useState<HTMLElement | null>(null);
+    const [inputElement, setInputElement] = useState<HTMLInputElement | null>(null);
 
     useEffect(() => {
         if (scrollElement) scrollElement.scrollTo(0, scrollElement.scrollHeight);
     }, [events, scrollElement]);
 
-    const handleSend: React.FormEventHandler<HTMLFormElement> = (e) => {
-        e.preventDefault();
+    const handleSend = () => {
+        if (!inputElement) return;
 
-        const form = e.currentTarget as Form<{ message: HTMLInputElement }>;
-
-        const message = form.message.value || '';
-
-        if (!message) return;
-
-        sendEvent({ message });
-        form.message.value = '';
-        form.message.focus();
+        sendEvent({ message: inputElement.value || '' });
+        inputElement.value = '';
+        inputElement.focus();
     };
+
+    const handleKeyDown: React.KeyboardEventHandler<HTMLInputElement> = (e) => e.key === 'Enter' && handleSend();
+    const handleClick: React.MouseEventHandler<HTMLInputElement> = () =>
+        scrollElement && scrollElement.scrollTo(0, scrollElement.scrollHeight);
 
     return (
         <>
@@ -119,14 +118,12 @@ export default function Chat() {
                     Logout
                 </button>
             </header>
-            <main ref={(node) => setScrollElement(node)}>
+            <main ref={setScrollElement}>
                 {events.map((e, index, all) => {
                     const prev = all[index - 1];
-
                     if (prev && prev.id === e.id) {
                         return null;
                     }
-
                     const next = all[index + 1];
                     const systemEvent = isSystemEvent(e);
                     const event = {
@@ -135,29 +132,27 @@ export default function Chat() {
                         nextIsSame: next && next.user === e.user && isSystemEvent(next) === systemEvent,
                         prevIsSame: prev && prev.user === e.user && isSystemEvent(prev) === systemEvent,
                     };
-
                     if (isSystemEvent(event)) {
                         return <SystemEventLine key={event.id} {...event} />;
                     }
-
                     if (isMessageEvent(event)) {
                         return <MessageLine key={event.id} {...event} />;
                     }
-
                     return null;
                 })}
             </main>
             <footer>
-                <form onSubmit={handleSend}>
-                    <div className="field">
-                        <div className="control">
-                            <input type="text" autoComplete="off" name="message" />
-                        </div>
-                    </div>
-                    <button type="submit">
-                        <SendIcon />
-                    </button>
-                </form>
+                <input
+                    type="text"
+                    autoComplete="off"
+                    name="message"
+                    ref={setInputElement}
+                    onClick={handleClick}
+                    onKeyDown={handleKeyDown}
+                />
+                <button type="submit" onClick={handleSend}>
+                    <SendIcon />
+                </button>
             </footer>
         </>
     );

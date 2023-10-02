@@ -1,6 +1,6 @@
 {
     "name": "@bsr-comm/client",
-    "version": "0.1.2",
+    "version": "0.1.5",
     "homepage": "https://comms.iambrian.com",
     "private": true,
     "dependencies": {
