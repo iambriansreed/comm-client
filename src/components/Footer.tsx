@@ -1,4 +1,5 @@
 import { HeartIcon } from '../icons';
+import version from '../version';
 
 export default function Footer() {
     return (
@@ -8,7 +9,7 @@ export default function Footer() {
                 <HeartIcon />
                 by <a href="https://iambrian.com">Brian</a>
             </div>
-            <div className="version">0.1.5</div>
+            <div className="version">{version}</div>
         </footer>
     );
 }

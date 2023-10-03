@@ -1,6 +1,6 @@
 {
     "name": "@bsr-comm/client",
-    "version": "0.1.5",
+    "version": "0.1.7",
     "homepage": "https://comms.iambrian.com",
     "private": true,
     "dependencies": {
@@ -22,6 +22,7 @@
         "predeploy": "npm run build",
         "deploy": "gh-pages -d build",
         "start": "react-scripts start",
+        "prebuild": "node -p \"'const VERSION = ' + JSON.stringify(require('./package.json').version) + ';\\nexport default VERSION;'\" > src/version.ts",
         "build": "react-scripts build",
         "test": "react-scripts test",
         "eject": "react-scripts eject"
@@ -49,5 +50,6 @@
         "gh-pages": "^6.0.0",
         "socket.io-client": "^4.7.2",
         "tailwindcss": "^3.3.3"
-    }
+    },
+    "license": "MIT"
 }
