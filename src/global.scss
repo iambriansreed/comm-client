@@ -8,7 +8,8 @@ body {
 }
 
 body {
-    @apply m-0 font-sans antialiased bg-zinc-900 bg-gradient-to-br from-zinc-800 text-zinc-50 text-[14px];
+    @apply m-0 font-sans antialiased bg-zinc-900 bg-gradient-to-br from-zinc-800 text-zinc-50;
+    font-size: 14px;
 }
 
 #root {
@@ -99,10 +100,12 @@ select {
 
 footer.credits {
     @apply flex flex-row justify-between p-3;
+
     svg {
         @apply mx-2 w-5;
     }
 }
+
 .connecting {
     > main {
         @extend .flex-center;
