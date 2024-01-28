@@ -1,8 +1,9 @@
 import { PropsWithChildren, useEffect, useState } from 'react';
-import { useSessionContext } from './Session';
-import clsx from '../clsx';
+
 import { ChannelEvent, SystemEvent, isSystemEvent } from '@bsr-comms/utils';
 import { AppIcon, SendIcon, UsersIcon } from '../icons';
+import useSession from '../hooks/useSession';
+import clsx from '../utils/clsx';
 
 type LineData = {
     date: Date;
@@ -40,7 +41,7 @@ function isMessageEvent(e: ChannelEvent): e is MessageEvent {
 }
 
 function MessageLine(e: MessageEvent & LineData) {
-    const { userName } = useSessionContext();
+    const { userName } = useSession();
 
     return (
         <Line
@@ -69,15 +70,15 @@ function SystemEventLine(e: SystemEvent & LineData) {
     return (
         <Line {...e} className={clsx('system-event', className)}>
             <span>
-                <span className="user">{e.user}</span> {systemActions[e.system] || 'interacted with'} the channel at{' '}
-                {formatDate(e.date)}
+                <span className="user">{e.user}</span> {systemActions[e.system] || 'interacted with'} the
+                channel at {formatDate(e.date)}
             </span>
         </Line>
     );
 }
 
 export default function Chat() {
-    const { channel, logout, sendEvent } = useSessionContext();
+    const { channel, logout, sendEvent } = useSession();
     const { events, users, name: channelName } = channel!;
 
     const [scrollElement, setScrollElement] = useState<HTMLElement | null>(null);
@@ -95,9 +96,14 @@ export default function Chat() {
         inputElement.focus();
     };
 
-    const handleKeyDown: React.KeyboardEventHandler<HTMLInputElement> = (e) => e.key === 'Enter' && handleSend();
+    const handleKeyDown: React.KeyboardEventHandler<HTMLInputElement> = (e) =>
+        e.key === 'Enter' && handleSend();
     const handleClick: React.MouseEventHandler<HTMLInputElement> = () =>
         scrollElement && scrollElement.scrollTo(0, scrollElement.scrollHeight);
+
+    document.addEventListener('scroll', (event) => {
+        console.log(event);
+    });
 
     return (
         <>
@@ -150,7 +156,13 @@ export default function Chat() {
                     onClick={handleClick}
                     onKeyDown={handleKeyDown}
                 />
-                <button type="submit" onClick={handleSend}>
+                <button
+                    type="submit"
+                    onMouseDown={(e) => {
+                        e.preventDefault();
+                        handleSend();
+                    }}
+                >
                     <SendIcon />
                 </button>
             </footer>

@@ -2,7 +2,7 @@ import Footer from './Footer';
 import { LoadingIcon } from '../icons';
 import useMountEffect from '../hooks/useMountEffect';
 import { useState } from 'react';
-import clsx from '../clsx';
+import clsx from '../utils/clsx';
 
 export default function Connecting() {
     const [loaded, setLoaded] = useState(false);

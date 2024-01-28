@@ -1,10 +1,11 @@
 import { useCallback, useState } from 'react';
-import { ErrorMessage, useSessionContext } from './Session';
 import useMountEffect from '../hooks/useMountEffect';
 import Footer from './Footer';
+import useSession from '../hooks/useSession';
+import ErrorMessage from '../utils/ErrorMessage';
 
 export default function Login() {
-    const { getNewChannel, error, setError, ...context } = useSessionContext();
+    const { getNewChannel, error, setError, ...context } = useSession();
 
     const [formValues, setFormValues] = useState({
         username: context.userName || '',
@@ -80,7 +81,9 @@ export default function Login() {
                                     autoComplete="off"
                                     required
                                     value={formValues.channel}
-                                    onChange={(e) => setFormValues((p) => ({ ...p, channel: e.target.value }))}
+                                    onChange={(e) =>
+                                        setFormValues((p) => ({ ...p, channel: e.target.value }))
+                                    }
                                 />
                                 <button type="button" onClick={handleNewChannel}>
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">

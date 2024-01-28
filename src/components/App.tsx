@@ -1,11 +1,12 @@
-import { Route, useSessionContext } from './Session';
 import Chat from './Chat';
 import Login from './Login';
 import Connecting from './Connecting';
 import { ReactElement } from 'react';
+import useSession from '../hooks/useSession';
+import { Route } from '../Route';
 
 function App() {
-    const { route } = useSessionContext();
+    const { route } = useSession();
 
     const router: Record<Route, () => ReactElement<any, any>> = {
         connecting: Connecting,

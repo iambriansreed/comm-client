@@ -2,13 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
-html,
-body {
-    @apply p-0 m-0 overflow-hidden;
+html {
+    background-color: #333;
+    height: var(--100vvh);
 }
 
 body {
-    @apply m-0 font-sans antialiased bg-zinc-900 bg-gradient-to-br from-zinc-800 text-zinc-50;
+    @apply m-0 p-0 font-sans antialiased bg-zinc-900 bg-gradient-to-br from-zinc-800 text-zinc-50;
+    height: var(--100vvh);
     font-size: 14px;
 }
 
@@ -80,7 +81,8 @@ select {
 select {
     @apply appearance-none bg-no-repeat;
     background-image: linear-gradient(45deg, transparent 50%, white 50%),
-        linear-gradient(135deg, white 50%, transparent 50%), linear-gradient(to right, transparent, transparent);
+        linear-gradient(135deg, white 50%, transparent 50%),
+        linear-gradient(to right, transparent, transparent);
     background-position: calc(100% - 20px) calc(1em + 2px), calc(100% - 15px) calc(1em + 2px), 100% 0;
     background-size: 5px 5px, 5px 5px, 2.5em 2.5em;
 }
@@ -90,7 +92,7 @@ select {
 }
 
 .app {
-    @apply flex flex-col w-full h-full fixed bottom-0 left-0 right-0;
+    @apply flex flex-col w-full h-full;
     height: var(--100vvh);
 
     > main {

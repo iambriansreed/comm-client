@@ -1,11 +1,12 @@
-import React, { PropsWithChildren, useContext, useEffect, useReducer, useState } from 'react';
-import { ClientChannel, isErrorResponse, User, ChannelEvent, SocketClient, ErrorResponse } from '@bsr-comms/utils';
-import { sortBy } from '../utils';
+import { ChannelEvent, ClientChannel, isErrorResponse, SocketClient } from '@bsr-comms/utils';
+import { PropsWithChildren, useReducer, useState, useEffect } from 'react';
 import useMountEffect from '../hooks/useMountEffect';
 
 import { io } from 'socket.io-client';
+import { sessionContext, Session, SessionContext, SessionContextProvided } from '../utils/Session';
+import sortBy from '../utils/sortBy';
 
-const server_uri = process.env.SERVER_URI || process.env.REACT_APP_SERVER_URI!;
+const server_uri = import.meta.env.VITE_SERVER_URI;
 
 const comm = SocketClient(
     io(server_uri, {
@@ -16,66 +17,6 @@ const comm = SocketClient(
         transports: ['websocket', 'polling', 'flashsocket'],
     })
 );
-
-class Session {
-    constructor(private sessionStorage = globalThis.sessionStorage) {}
-
-    get id(): string {
-        let value = this.sessionStorage.getItem('id');
-
-        if (!value) {
-            value = crypto.randomUUID();
-            this.sessionStorage.setItem('id', value);
-        }
-
-        return value;
-    }
-
-    get userName(): string {
-        return this.sessionStorage.getItem('userName') || '';
-    }
-    set userName(value: string) {
-        this.sessionStorage.setItem('userName', value);
-    }
-    get channelName(): string {
-        return this.sessionStorage.getItem('channelName') || '';
-    }
-    set channelName(value: string) {
-        this.sessionStorage.setItem('channelName', value);
-    }
-
-    get user(): User {
-        return {
-            name: this.userName,
-            sessionId: this.id,
-        };
-    }
-}
-
-export type Route = 'login' | 'channel' | 'connecting';
-
-export const ErrorMessage: Record<ErrorResponse['code'], string> = {
-    MaxUsers: 'The maximum number of users have already joined the channel.',
-    UsernameInvalid: 'User name is invalid.',
-    UsernameUnavailable: 'User name is unavailable.',
-};
-
-interface SessionContext {
-    channel: ClientChannel | null;
-    userName: string | null;
-    error: ErrorResponse['code'] | null;
-    route: Route;
-}
-
-interface SessionContextProvided extends SessionContext {
-    getNewChannel: () => Promise<string>;
-    login: (userName: string, channelName: string) => Promise<void>;
-    logout: () => void;
-    sendEvent: (data: any) => void;
-    setError: (error: ErrorResponse['code'] | null) => void;
-}
-
-const sessionContext = React.createContext<SessionContextProvided | null>(null);
 
 const Provider = sessionContext.Provider;
 
@@ -109,7 +50,7 @@ function channelReducer(state: SessionContext['channel'], action: Action | null)
     return state;
 }
 
-export function SessionProvider({ children }: PropsWithChildren) {
+export default function SessionProvider({ children }: PropsWithChildren) {
     const [channel, setChannel] = useReducer(channelReducer, null);
     const [userName, setUsername] = useState<SessionContext['userName']>(session.userName || null);
     const [error, setError] = useState<SessionContext['error'] | null>(null);
@@ -201,7 +142,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
         setRoute('login');
     };
 
-    const sendEvent = async (data: any) => {
+    const sendEvent = async (data: Record<string, unknown>) => {
         if (!channel?.name) return;
 
         const action = { data, channel: channel.name, user: session.user };
@@ -234,9 +175,3 @@ export function SessionProvider({ children }: PropsWithChildren) {
         </Provider>
     );
 }
-
-export const useSessionContext = (): SessionContextProvided => {
-    const context = useContext(sessionContext);
-    if (!context) throw new Error('useSessionContext called outside of provider!');
-    return context;
-};

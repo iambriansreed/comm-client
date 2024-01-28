@@ -1,55 +1,43 @@
 {
-    "name": "@bsr-comm/client",
-    "version": "0.1.7",
-    "homepage": "https://comms.iambrian.com",
+    "name": "comm-client",
+    "version": "0.2.0",
+    "homepage": "https://chat.iambrian.com",
     "private": true,
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "build": "tsc && vite build",
+        "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+        "preview": "vite preview",
+        "predeploy": "npm run build",
+        "deploy": "gh-pages -d dist"
+    },
     "dependencies": {
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0"
+    },
+    "devDependencies": {
+        "@bsr-comms/utils": "github:iambriansreed/comms-utils",
         "@testing-library/jest-dom": "^5.17.0",
         "@testing-library/react": "^13.4.0",
         "@testing-library/user-event": "^13.5.0",
         "@types/jest": "^27.5.2",
-        "@types/node": "^16.18.40",
-        "@types/react": "^18.2.20",
-        "@types/react-dom": "^18.2.7",
-        "react": "^18.2.0",
-        "react-dom": "^18.2.0",
-        "react-scripts": "5.0.1",
-        "sass": "^1.65.1",
-        "typescript": "^4.9.5",
-        "web-vitals": "^2.1.4"
-    },
-    "scripts": {
-        "predeploy": "npm run build",
-        "deploy": "gh-pages -d build",
-        "start": "react-scripts start",
-        "prebuild": "node -p \"'const VERSION = ' + JSON.stringify(require('./package.json').version) + ';\\nexport default VERSION;'\" > src/version.ts",
-        "build": "react-scripts build",
-        "test": "react-scripts test",
-        "eject": "react-scripts eject"
-    },
-    "eslintConfig": {
-        "extends": [
-            "react-app",
-            "react-app/jest"
-        ]
-    },
-    "browserslist": {
-        "production": [
-            ">0.2%",
-            "not dead",
-            "not op_mini all"
-        ],
-        "development": [
-            "last 1 chrome version",
-            "last 1 firefox version",
-            "last 1 safari version"
-        ]
-    },
-    "devDependencies": {
-        "@bsr-comms/utils": "github:iambriansreed/comms-utils",
-        "gh-pages": "^6.0.0",
+        "@types/react": "^18.2.43",
+        "@types/react-dom": "^18.2.17",
+        "@typescript-eslint/eslint-plugin": "^6.14.0",
+        "@typescript-eslint/parser": "^6.14.0",
+        "@vitejs/plugin-react": "^4.2.1",
+        "autoprefixer": "^10.4.17",
+        "eslint": "^8.55.0",
+        "eslint-plugin-react-hooks": "^4.6.0",
+        "eslint-plugin-react-refresh": "^0.4.5",
+        "gh-pages": "^6.1.1",
+        "postcss": "^8.4.33",
+        "sass": "^1.70.0",
         "socket.io-client": "^4.7.2",
-        "tailwindcss": "^3.3.3"
-    },
-    "license": "MIT"
+        "tailwindcss": "^3.4.1",
+        "typescript": "^5.2.2",
+        "vite": "^5.0.8",
+        "web-vitals": "^2.1.4"
+    }
 }
