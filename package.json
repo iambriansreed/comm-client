@@ -1,5 +1,5 @@
 {
-    "name": "comm-client",
+    "name": "@bsr-comm/server",
     "version": "0.2.0",
     "homepage": "https://chat.iambrian.com",
     "private": true,
@@ -17,7 +17,7 @@
         "react-dom": "^18.2.0"
     },
     "devDependencies": {
-        "@bsr-comms/utils": "github:iambriansreed/comms-utils",
+        "@bsr-comm/utils": "github:iambriansreed/comm-utils",
         "@testing-library/jest-dom": "^5.17.0",
         "@testing-library/react": "^13.4.0",
         "@testing-library/user-event": "^13.5.0",

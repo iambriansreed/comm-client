@@ -109,6 +109,8 @@ footer.credits {
 }
 
 .connecting {
+    @apply px-5;
+
     > main {
         @extend .flex-center;
         @apply flex-col;

@@ -18,6 +18,7 @@ export default function Connecting() {
                 <div className="spinner">
                     <LoadingIcon />
                 </div>
+                <p className="mt-5">Starting Server</p>
             </main>
             <Footer />
         </>
