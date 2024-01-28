@@ -1,4 +1,4 @@
-import { ChannelEvent, ClientChannel, isErrorResponse, SocketClient } from '@bsr-comms/utils';
+import { ChannelEvent, ClientChannel, isErrorResponse, SocketClient } from '@bsr-comm/utils';
 import { PropsWithChildren, useReducer, useState, useEffect } from 'react';
 import useMountEffect from '../hooks/useMountEffect';
 

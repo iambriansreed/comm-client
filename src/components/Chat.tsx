@@ -1,6 +1,6 @@
 import { PropsWithChildren, useEffect, useState } from 'react';
 
-import { ChannelEvent, SystemEvent, isSystemEvent } from '@bsr-comms/utils';
+import { ChannelEvent, SystemEvent, isSystemEvent } from '@bsr-comm/utils';
 import { AppIcon, SendIcon, UsersIcon } from '../icons';
 import useSession from '../hooks/useSession';
 import clsx from '../utils/clsx';

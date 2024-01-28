@@ -1,5 +1,5 @@
 import React from 'react';
-import { ClientChannel, User, ErrorResponse } from '@bsr-comms/utils';
+import { ClientChannel, User, ErrorResponse } from '@bsr-comm/utils';
 import { Route } from '../Route';
 import generateUUID from './generateUUID';
 
