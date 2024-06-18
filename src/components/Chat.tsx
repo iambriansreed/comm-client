@@ -101,10 +101,6 @@ export default function Chat() {
     const handleClick: React.MouseEventHandler<HTMLInputElement> = () =>
         scrollElement && scrollElement.scrollTo(0, scrollElement.scrollHeight);
 
-    document.addEventListener('scroll', (event) => {
-        console.log(event);
-    });
-
     return (
         <>
             <header>
