@@ -1,5 +1,5 @@
 {
-    "name": "@bsr-comm/server",
+    "name": "@bsr-comm/client",
     "version": "0.2.0",
     "homepage": "https://chat.iambrian.com",
     "private": true,
