@@ -4,6 +4,7 @@ import { ChannelEvent, SystemEvent, isSystemEvent } from '@bsr-comm/utils';
 import { AppIcon, SendIcon, UsersIcon } from '../icons';
 import useSession from '../hooks/useSession';
 import clsx from '../utils/clsx';
+import showToast from '../utils/toast';
 
 type LineData = {
     date: Date;
@@ -101,14 +102,15 @@ export default function Chat() {
     const handleClick: React.MouseEventHandler<HTMLInputElement> = () =>
         scrollElement && scrollElement.scrollTo(0, scrollElement.scrollHeight);
 
+    const handleInvite = () => {
+        navigator.clipboard.writeText(document.location.origin + '#/' + channelName);
+        showToast('url-copied');
+    };
+
     return (
         <>
             <header>
-                <h1
-                    onClick={() => {
-                        navigator.clipboard.writeText(document.location.origin + '#/' + channelName);
-                    }}
-                >
+                <h1 onClick={handleInvite}>
                     <AppIcon />
                     {channelName}
                 </h1>
@@ -116,6 +118,9 @@ export default function Chat() {
                     <UsersIcon />
                     {!users ? 'None' : users.map((u, index) => <span key={u + index}>{u}</span>)}
                 </div>
+                <button type="button" onClick={handleInvite}>
+                    Invite
+                </button>
                 <button type="button" onClick={logout}>
                     Logout
                 </button>
@@ -162,6 +167,9 @@ export default function Chat() {
                     <SendIcon />
                 </button>
             </footer>
+            <div id="url-copied" className="toast">
+                Url Copied!
+            </div>
         </>
     );
 }
