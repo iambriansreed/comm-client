@@ -201,21 +201,23 @@ select {
 }
 
 .toast {
-    @apply p-4 m-4 rounded-lg;
+    @apply p-3 m-4 rounded-lg z-50 font-semibold;
     background-color: var(--surface);
     color: var(--text);
     border: 1px solid var(--border);
-
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
     opacity: 0;
-    transition: opacity 0.3s ease-in-out;
-    top: 2rem;
+    /* sits below the header so it never overlaps the controls */
+    top: 4.5rem;
+    transition:
+        opacity 0.3s ease-in-out,
+        top 0.3s ease-in-out;
 
     &.show {
         opacity: 1;
-        top: 0.75rem;
+        top: 3.5rem;
     }
 }
 
