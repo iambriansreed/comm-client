@@ -1,10 +1,12 @@
-import { PropsWithChildren, useEffect, useState } from 'react';
+import { PropsWithChildren, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 import { ChannelEvent, SystemEvent, isSystemEvent } from '@bsr-comm/utils';
-import { AppIcon, SendIcon, UsersIcon } from '../icons';
+import { SendIcon, UsersIcon } from '../icons';
 import useSession from '../hooks/useSession';
 import clsx from '../utils/clsx';
 import showToast from '../utils/toast';
+import ThemeToggle from './ThemeToggle';
 
 type LineData = {
     date: Date;
@@ -78,6 +80,58 @@ function SystemEventLine(e: SystemEvent & LineData) {
     );
 }
 
+function UsersList({ users }: { users?: string[] }) {
+    const [open, setOpen] = useState(false);
+    const [coords, setCoords] = useState<{ top: number; left: number } | null>(null);
+    const triggerRef = useRef<HTMLButtonElement>(null);
+
+    const count = users?.length ?? 0;
+
+    const togglePopover = () => {
+        if (count === 0) return;
+        const rect = triggerRef.current?.getBoundingClientRect();
+        if (rect) setCoords({ top: rect.bottom + 8, left: rect.left });
+        setOpen((o) => !o);
+    };
+
+    return (
+        <>
+            <button
+                ref={triggerRef}
+                type="button"
+                className="users-button"
+                onClick={togglePopover}
+                aria-label="Show members"
+            >
+                <UsersIcon />
+                {count} {count === 1 ? 'user' : 'users'}
+            </button>
+            {open &&
+                users &&
+                coords &&
+                createPortal(
+                    <>
+                        <div className="popover-backdrop" onClick={() => setOpen(false)} />
+                        <div
+                            className="users-popover"
+                            role="dialog"
+                            aria-label="Channel members"
+                            style={{ top: coords.top, left: coords.left }}
+                        >
+                            <div className="users-popover-title">In this channel</div>
+                            {users.map((u, index) => (
+                                <div key={u + index} className="users-popover-name">
+                                    {u}
+                                </div>
+                            ))}
+                        </div>
+                    </>,
+                    document.body
+                )}
+        </>
+    );
+}
+
 export default function Chat() {
     const { channel, logout, sendEvent } = useSession();
     const { events, users, name: channelName } = channel!;
@@ -110,20 +164,14 @@ export default function Chat() {
     return (
         <>
             <header>
-                <h1 onClick={handleInvite}>
-                    <AppIcon />
-                    {channelName}
-                </h1>
-                <div className="users">
-                    <UsersIcon />
-                    {!users ? 'None' : users.map((u, index) => <span key={u + index}>{u}</span>)}
-                </div>
+                <UsersList users={users} />
                 <button type="button" onClick={handleInvite}>
                     Invite
                 </button>
                 <button type="button" onClick={logout}>
                     Logout
                 </button>
+                <ThemeToggle />
             </header>
             <main ref={setScrollElement}>
                 {events.map((e, index, all) => {

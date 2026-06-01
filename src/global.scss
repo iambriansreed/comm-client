@@ -2,15 +2,60 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ---------- theme tokens ---------- */
+:root,
+[data-theme='dark'] {
+    --bg-page: #09090b; /* zinc-950 — html backdrop */
+    --bg: #18181b; /* zinc-900 — app surface */
+    --surface: #27272a; /* zinc-800 — cards, bubbles */
+    --surface-hover: rgba(255, 255, 255, 0.06);
+    --surface-input: rgba(9, 9, 11, 0.5);
+    --border: #3f3f46; /* zinc-700 */
+    --border-focus: #71717a; /* zinc-500 */
+    --text: #fafafa; /* zinc-50 */
+    --text-muted: rgba(250, 250, 250, 0.5);
+    --icon: #71717a; /* zinc-500 */
+    --header-bg: rgba(24, 24, 27, 0.85);
+    --footer-bg: #27272a; /* chat input bar */
+    --shadow: rgba(0, 0, 0, 0.5);
+}
+
+[data-theme='light'] {
+    --bg-page: #d4d4d8; /* zinc-300 */
+    --bg: #f4f4f5; /* zinc-100 */
+    --surface: #ffffff;
+    --surface-hover: rgba(0, 0, 0, 0.04);
+    --surface-input: #ffffff;
+    --border: #e4e4e7; /* zinc-200 */
+    --border-focus: #a1a1aa; /* zinc-400 */
+    --text: #18181b; /* zinc-900 */
+    --text-muted: rgba(24, 24, 27, 0.55);
+    --icon: #a1a1aa; /* zinc-400 */
+    --header-bg: rgba(255, 255, 255, 0.85);
+    --footer-bg: #ffffff;
+    --shadow: rgba(0, 0, 0, 0.12);
+}
+
+:root {
+    --accent: #6366f1; /* indigo-500 */
+    --accent-hover: #4f46e5; /* indigo-600 */
+    --accent-text: #ffffff;
+}
+
 html {
-    background-color: #333;
+    background-color: var(--bg-page);
     height: var(--100vvh);
 }
 
 body {
-    @apply m-0 p-0 font-sans antialiased bg-zinc-900 bg-gradient-to-br from-zinc-800 text-zinc-50;
+    @apply m-0 p-0 font-sans antialiased;
+    background-color: var(--bg-page);
+    color: var(--text);
     height: var(--100vvh);
     font-size: 14px;
+    transition:
+        background-color 0.25s ease,
+        color 0.25s ease;
 }
 
 #root {
@@ -30,11 +75,12 @@ form {
 }
 
 svg {
-    @apply fill-zinc-500 w-7 inline-block;
+    @apply w-7 inline-block;
+    fill: var(--icon);
 }
 
 button {
-    @apply rounded-md;
+    @apply rounded-md transition-colors;
 
     &:active {
         @apply opacity-60;
@@ -42,7 +88,15 @@ button {
 }
 
 button[type='submit'] {
-    @apply border bg-zinc-600 border-zinc-700 text-zinc-50 px-4 py-2;
+    @apply border px-4 py-2 font-medium;
+    background-color: var(--accent);
+    border-color: var(--accent);
+    color: var(--accent-text);
+
+    &:hover {
+        background-color: var(--accent-hover);
+        border-color: var(--accent-hover);
+    }
 }
 
 h1 {
@@ -57,15 +111,17 @@ h2 {
     @apply flex flex-col gap-1 py-2 w-full;
 
     label[for] {
-        @apply text-sm text-white text-opacity-50;
+        @apply text-sm font-medium;
+        color: var(--text-muted);
     }
 
     .control {
-        @apply bg-zinc-900 bg-opacity-50 flex flex-row gap-4 w-full rounded-md;
+        @apply flex flex-row gap-4 w-full rounded-md;
+        background-color: var(--surface-input);
     }
 
     .error-message {
-        @apply text-red-500;
+        @apply text-red-500 text-sm;
 
         &:empty {
             @apply hidden;
@@ -75,25 +131,69 @@ h2 {
 
 input[type='text'],
 select {
-    @apply bg-transparent text-zinc-50 py-2 pl-4 pr-4 rounded grow outline-none focus:border-zinc-400 w-full text-lg;
+    @apply bg-transparent py-2 pl-4 pr-4 rounded grow outline-none w-full text-lg;
+    color: var(--text);
 }
 
 select {
     @apply appearance-none bg-no-repeat;
-    background-image: linear-gradient(45deg, transparent 50%, white 50%),
-        linear-gradient(135deg, white 50%, transparent 50%),
+    background-image:
+        linear-gradient(45deg, transparent 50%, var(--icon) 50%),
+        linear-gradient(135deg, var(--icon) 50%, transparent 50%),
         linear-gradient(to right, transparent, transparent);
-    background-position: calc(100% - 20px) calc(1em + 2px), calc(100% - 15px) calc(1em + 2px), 100% 0;
-    background-size: 5px 5px, 5px 5px, 2.5em 2.5em;
+    background-position:
+        calc(100% - 20px) calc(1em + 2px),
+        calc(100% - 15px) calc(1em + 2px),
+        100% 0;
+    background-size:
+        5px 5px,
+        5px 5px,
+        2.5em 2.5em;
 }
 
 .flex-center {
     @apply flex items-center justify-center grow;
 }
 
+/* ---------- theme switcher ---------- */
+.theme-toggle {
+    @apply flex items-center justify-center w-10 h-10 rounded-full border shrink-0;
+    background-color: var(--surface);
+    border-color: var(--border);
+    color: var(--text);
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.2s ease;
+
+    &:hover {
+        border-color: var(--border-focus);
+    }
+
+    svg {
+        @apply w-5 h-5;
+        fill: none;
+        stroke: currentColor;
+    }
+
+    /* floats top-right on screens with no header (login / connecting) */
+    &--floating {
+        @apply fixed top-3 right-3 z-50;
+        box-shadow: 0 2px 8px var(--shadow);
+
+        &:hover {
+            transform: translateY(-1px);
+        }
+    }
+}
+
 .app {
-    @apply flex flex-col w-full h-full;
+    @apply flex flex-col w-full h-full mx-auto;
+    max-width: 48rem;
     height: var(--100vvh);
+    background-color: var(--bg);
+    box-shadow: 0 0 80px var(--shadow);
+    transition: background-color 0.25s ease;
 
     > main {
         @apply grow overflow-scroll;
@@ -101,7 +201,10 @@ select {
 }
 
 .toast {
-    @apply p-4 m-4 bg-zinc-800 bg-opacity-90 rounded-lg text-white;
+    @apply p-4 m-4 rounded-lg;
+    background-color: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
 
     position: absolute;
     left: 50%;
@@ -116,11 +219,39 @@ select {
     }
 }
 
+/* ---------- channel members popover ---------- */
+.popover-backdrop {
+    @apply fixed inset-0 z-40;
+}
+
+.users-popover {
+    @apply fixed z-50 rounded-xl border p-1.5 min-w-[10rem] max-w-[16rem];
+    background-color: var(--surface);
+    border-color: var(--border);
+    color: var(--text);
+    box-shadow: 0 12px 32px -10px var(--shadow);
+
+    .users-popover-title {
+        @apply text-xs font-semibold px-2 py-1;
+        color: var(--text-muted);
+    }
+
+    .users-popover-name {
+        @apply text-sm px-2 py-1 rounded-md whitespace-nowrap overflow-hidden text-ellipsis;
+    }
+}
+
 footer.credits {
-    @apply flex flex-row justify-between p-3;
+    @apply flex flex-row justify-between pb-3;
+    color: var(--text-muted);
+
+    a {
+        color: var(--text);
+        @apply hover:underline underline-offset-4;
+    }
 
     svg {
-        @apply mx-2 w-5;
+        @apply mx-1.5 w-5;
     }
 }
 
@@ -135,10 +266,11 @@ footer.credits {
             svg {
                 @apply animate-spin w-10;
                 circle {
-                    @apply fill-white opacity-5;
+                    fill: var(--text);
+                    @apply opacity-5;
                 }
                 path {
-                    @apply fill-white;
+                    fill: var(--text);
                 }
             }
         }
@@ -152,7 +284,34 @@ footer.credits {
         @extend .flex-center;
 
         .form {
-            @apply flex flex-col gap-4 items-center max-w-lg w-96;
+            @apply flex flex-col gap-4 items-stretch w-96 max-w-full p-8 rounded-2xl border;
+            background-color: var(--surface);
+            border-color: var(--border);
+            box-shadow: 0 20px 50px -12px var(--shadow);
+
+            .logo {
+                @apply w-20 max-w-full h-auto mx-auto mt-1;
+            }
+
+            .title {
+                @apply text-4xl font-extrabold tracking-tight text-center m-0;
+                color: var(--text);
+            }
+
+            .tagline {
+                @apply text-sm text-center mb-2 mt-1;
+                color: var(--text-muted);
+            }
+
+            .control {
+                @apply border;
+                background-color: var(--surface-input);
+                border-color: var(--border);
+
+                &:focus-within {
+                    border-color: var(--border-focus);
+                }
+            }
 
             .tabs {
                 @apply flex flex-row gap-4 grow w-full;
@@ -163,54 +322,97 @@ footer.credits {
                         @apply opacity-30;
                     }
                     &.active {
-                        @apply border-b border-b-zinc-400;
+                        border-bottom: 1px solid var(--border-focus);
                     }
                 }
             }
 
+            /* "new channel" shuffle button inside the channel control */
+            .control button[type='button'] {
+                @apply px-3;
+                svg {
+                    @apply w-6 mr-2;
+                    fill: var(--icon);
+                }
+                &:hover svg {
+                    fill: var(--text);
+                }
+            }
+
             button[type='submit'] {
-                @apply max-w-lg;
+                @apply w-full;
             }
 
             footer {
-                @apply flex w-full flex-row gap-3 justify-center;
+                @apply flex w-full flex-row gap-3 justify-center mt-2;
             }
 
-            button svg {
-                @apply w-6 fill-zinc-500 mr-2;
+            .disclaimer {
+                @apply text-xs text-center mt-2 text-balance;
+                color: var(--text-muted);
             }
         }
     }
 }
 
 .channel {
+    position: relative;
+    isolation: isolate;
+
+    /* faint logo watermark behind the conversation */
+    &::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        background: url('/logo.svg') no-repeat center;
+        background-size: min(55%, 18rem);
+        opacity: 0.05;
+        pointer-events: none;
+    }
+
+    > header,
+    > main,
+    > footer {
+        position: relative;
+        z-index: 1;
+    }
+
     > header {
-        @apply bg-zinc-900 px-6 pt-4 pb-3 flex flex-row gap-5 justify-between items-center flex-nowrap overflow-hidden;
+        @apply px-6 pt-4 pb-3 flex flex-row gap-4 justify-between items-center flex-nowrap;
+        background-color: var(--header-bg);
+        border-bottom: 1px solid var(--border);
+        backdrop-filter: blur(8px);
 
-        svg {
-            @apply mr-2 w-5;
-        }
+        /* icon + "N users" as one plain (un-styled) button that opens the popover */
+        .users-button {
+            @apply flex items-center min-w-0 grow text-sm font-bold whitespace-nowrap;
+            color: var(--text-muted);
 
-        h1 {
-            @apply text-lg font-bold hover:underline-offset-4 hover:cursor-pointer whitespace-nowrap;
-        }
-        .users {
-            @apply basis-0 min-w-0 grow overflow-ellipsis whitespace-nowrap overflow-hidden;
-
-            h2 {
-                @apply text-base font-semibold inline-block pr-4;
+            svg {
+                @apply mr-2 w-5 shrink-0;
             }
 
-            span + span {
-                &::before {
-                    content: ', ';
-                }
+            &:hover {
+                color: var(--text);
+            }
+        }
+
+        button[type='button']:not(.theme-toggle):not(.users-button) {
+            @apply border px-3 py-1.5 text-sm font-medium shrink-0 whitespace-nowrap;
+            background-color: transparent;
+            border-color: var(--border);
+            color: var(--text);
+
+            &:hover {
+                border-color: var(--border-focus);
+                background-color: var(--surface-hover);
             }
         }
     }
 
     > main {
-        @apply grow overflow-scroll flex flex-col pb-2 gap-1 select-none;
+        @apply grow overflow-scroll flex flex-col pb-2 select-none;
 
         .line {
             &:empty {
@@ -219,84 +421,99 @@ footer.credits {
 
             &.system-event {
                 @apply flex py-2 justify-center font-thin italic text-sm;
+                color: var(--text-muted);
             }
 
             &.message {
-                @apply flex flex-row-reverse items-center my-1 px-4 gap-4;
+                @apply flex items-end gap-2 px-4;
+                margin-top: 0.75rem;
+                justify-content: flex-start;
 
                 .time {
-                    @apply flex items-center text-xs uppercase opacity-0 shrink-0;
+                    @apply flex items-center text-xs uppercase shrink-0 opacity-0 transition-opacity;
+                    color: var(--text-muted);
+                    order: 1;
                 }
 
                 .bubble {
-                    @apply grow p-3 border border-zinc-700 rounded-lg bg-zinc-800;
+                    @apply px-3.5 py-2 border rounded-2xl;
+                    max-width: 75%;
+                    background-color: var(--surface);
+                    border-color: var(--border);
+                    box-shadow: 0 1px 2px var(--shadow);
                 }
 
-                &:hover {
-                    .time {
-                        @apply opacity-50;
-                    }
-                    .bubble {
-                        @apply bg-opacity-10;
-                    }
+                &:hover .time {
+                    @apply opacity-70;
                 }
 
                 &:first-child {
                     @apply mt-5;
                 }
 
-                &.mine {
-                    @apply flex-row;
-                }
-
                 .user {
-                    @apply text-base font-bold;
-                }
-
-                &.prev-same {
-                    @apply my-0;
-
-                    .bubble {
-                        @apply border-t-0 rounded-t-none pt-1;
-
-                        .user {
-                            @apply hidden;
-                        }
-                    }
-                }
-
-                &.next-same {
-                    @apply my-0 -mb-1 /* fixes gap */;
-
-                    .bubble {
-                        @apply border-b-0 rounded-b-none pb-1;
-                    }
+                    @apply text-xs font-semibold mb-1;
+                    opacity: 0.7;
                 }
 
                 .message {
-                    @apply text-base font-normal;
+                    @apply text-base font-normal break-words;
+                }
+
+                &.mine {
+                    justify-content: flex-end;
+
+                    .time {
+                        order: -1;
+                    }
+
+                    .bubble {
+                        background-color: var(--accent);
+                        border-color: var(--accent);
+                        color: var(--accent-text);
+                    }
+
+                    /* own messages don't need a name label */
+                    .user {
+                        @apply hidden;
+                    }
+                }
+
+                /* consecutive messages from the same sender: tighten the gap,
+                   keep each in its own bubble, and drop the repeated name */
+                &.prev-same {
+                    margin-top: 0.15rem;
+
+                    .bubble .user {
+                        @apply hidden;
+                    }
                 }
             }
         }
     }
 
     > footer {
-        @apply flex flex-row bg-zinc-700 py-2 px-6 gap-0;
+        @apply flex flex-row py-3 px-6 gap-0;
+        background-color: var(--footer-bg);
+        border-top: 1px solid var(--border);
 
         input[type='text'] {
-            @apply bg-zinc-900 bg-opacity-50 flex flex-row w-full rounded-l-md;
+            @apply flex flex-row w-full rounded-l-md border;
+            background-color: var(--surface-input);
+            border-color: var(--border);
+
+            &:focus {
+                border-color: var(--border-focus);
+            }
         }
 
-        button {
-            @apply rounded-l-none;
-        }
+        button[type='submit'] {
+            @apply rounded-l-none px-4;
 
-        .control {
-            @apply rounded-r-none;
-        }
-
-        svg {
-            @apply w-5 fill-white opacity-60;
+            svg {
+                @apply w-5;
+                fill: var(--accent-text);
+            }
         }
     }
 }

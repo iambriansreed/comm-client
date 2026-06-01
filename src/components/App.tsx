@@ -1,6 +1,7 @@
 import Chat from './Chat';
 import Login from './Login';
 import Connecting from './Connecting';
+import ThemeToggle from './ThemeToggle';
 import { ReactElement } from 'react';
 import useSession from '../hooks/useSession';
 import { Route } from '../Route';
@@ -18,6 +19,8 @@ function App() {
 
     return (
         <div className={'app ' + route}>
+            {/* chat renders its own toggle inside the header; float it elsewhere */}
+            {route !== 'channel' && <ThemeToggle floating />}
             <Component />
         </div>
     );

@@ -55,6 +55,11 @@ export default function Login() {
         <>
             <main>
                 <div className="form">
+                    <div>
+                        <img className="logo" src="/logo.svg" alt="Comms" />
+                        <h1 className="title">Comms</h1>
+                    </div>
+                    <p className="tagline">Pick a name and a channel to start chatting.</p>
                     <form noValidate onSubmit={handleSubmit}>
                         <div className="field">
                             <label htmlFor="username">Name</label>
@@ -96,6 +101,10 @@ export default function Login() {
                             <button type="submit">Login</button>
                         </footer>
                     </form>
+                    <p className="disclaimer">
+                        Messages aren't permanently stored — the server keeps them only in memory and only
+                        while a channel is active, with no database and no logging.
+                    </p>
                 </div>
             </main>
             <Footer />

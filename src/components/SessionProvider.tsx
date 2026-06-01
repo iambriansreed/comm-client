@@ -10,9 +10,6 @@ const server_uri = import.meta.env.VITE_SERVER_URI;
 
 const comm = SocketClient(
     io(server_uri, {
-        extraHeaders: {
-            'my-custom-header': 'abcd',
-        },
         autoConnect: false,
         transports: ['websocket', 'polling', 'flashsocket'],
     })
